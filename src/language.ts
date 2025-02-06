@@ -3,7 +3,7 @@ import { ngramsData, NgramsDataType } from "./ngrams";
 import { IDetectionSettings } from "./interfaces/IDetectionSettings";
 import { ILanguageData } from "./interfaces/ILanguageData";
 import { scripts } from "./regex";
-import { Diacritics } from "@the-horizon-dev/fast-diacritics"; // Updated import
+import { Diacritics } from "@the-horizon-dev/fast-diacritics";
 
 const scriptKeys = Object.keys(scripts);
 
@@ -151,7 +151,7 @@ export class LanguageGuesser {
   }
 
   /**
-   * Calculates distances between extracted trigrams and the n-gram models of languages.
+   * Calculates distances between extracted trigrams and the n‑gram models of languages.
    * @param trigrams List of trigrams with frequencies.
    * @param srcLanguages N-gram models for a specific script.
    * @param options Optional detection settings.
@@ -302,8 +302,11 @@ export class LanguageGuesser {
 
   /**
    * Detects and aggregates language guesses for mixed-language texts.
-   * This method splits the input text into segments (based on punctuation),
-   * detects the best language for each segment, and then aggregates the results.
+   * This method first attempts to split the input text using sentence boundaries.
+   * If only one (long) segment is produced (i.e. no clear punctuation separation),
+   * it falls back to sliding window segmentation.
+   * Then it runs detection on each segment/window (using multiple candidates)
+   * and aggregates the results using a weighted average by segment/window length.
    *
    * @param utterance Text to analyze.
    * @param allowList (Optional) List of allowed language codes.
@@ -315,40 +318,59 @@ export class LanguageGuesser {
     allowList: string[] = [],
     limit = 3
   ): Array<{ alpha3: string; alpha2: string; language: string; score: number }> {
-    const segments = utterance
-      .split(/[.!?]+/)
-      .map((seg) => seg.trim())
-      .filter((seg) => seg.length >= 10);
+    // First, try to split the text on sentence boundaries.
+    let segments = utterance.split(/(?<=[.!?])\s+/).map(s => s.trim()).filter(s => s.length >= 10);
 
-    if (segments.length === 0) return this.guess(utterance, allowList, limit);
+    // If no segments were found, fallback to the whole utterance.
+    if (segments.length === 0) {
+      segments = [utterance];
+    }
+    // If only one long segment is produced, use sliding window segmentation.
+    else if (segments.length === 1 && segments[0].length > 40) {
+      const longSegment = segments[0];
+      const windowSize = 40;
+      const stepSize = 20;
+      segments = [];
+      for (let i = 0; i < longSegment.length; i += stepSize) {
+        segments.push(longSegment.substring(i, i + windowSize));
+      }
+    }
 
+    // Aggregate candidate scores across segments using multiple candidates per segment.
+    // We use the `guess` method so that for each segment we capture more than just the best guess.
     const aggregated: Record<
       string,
-      { totalScore: number; count: number; alpha2: string; alpha3: string; language: string }
+      { totalScore: number; totalWeight: number; alpha2: string; alpha3: string; language: string }
     > = {};
 
-    segments.forEach((segment) => {
-      const guess = this.guessBest(segment, allowList);
-      if (!aggregated[guess.alpha3]) {
-        aggregated[guess.alpha3] = {
-          totalScore: 0,
-          count: 0,
-          alpha2: guess.alpha2,
-          alpha3: guess.alpha3,
-          language: guess.language,
-        };
-      }
-      aggregated[guess.alpha3].totalScore += guess.score;
-      aggregated[guess.alpha3].count++;
+    segments.forEach(segment => {
+      // Get multiple candidates for this segment (up to 3).
+      const candidates = this.guess(segment, allowList, 3);
+      const weight = segment.length;
+      candidates.forEach(({ alpha3, alpha2, language, score }) => {
+        if (!aggregated[alpha3]) {
+          aggregated[alpha3] = {
+            totalScore: 0,
+            totalWeight: 0,
+            alpha2,
+            alpha3,
+            language,
+          };
+        }
+        aggregated[alpha3].totalScore += score * weight;
+        aggregated[alpha3].totalWeight += weight;
+      });
     });
 
-    const results = Object.values(aggregated).map((entry) => ({
+    // Compute weighted average scores.
+    const results = Object.values(aggregated).map(entry => ({
       alpha2: entry.alpha2,
       alpha3: entry.alpha3,
       language: entry.language,
-      score: entry.totalScore / entry.count,
+      score: entry.totalWeight ? entry.totalScore / entry.totalWeight : 0,
     }));
 
+    // Sort by descending score and return the top `limit` results.
     results.sort((a, b) => b.score - a.score);
     return results.slice(0, limit);
   }
