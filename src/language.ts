@@ -4,6 +4,7 @@ import { IDetectionSettings } from "./interfaces/IDetectionSettings";
 import { ILanguageData } from "./interfaces/ILanguageData";
 import { scripts } from "./regex";
 import { Diacritics } from "@the-horizon-dev/fast-diacritics";
+import { Tokenizer } from "@the-horizon-dev/fast-tokenizer";
 
 const scriptKeys = Object.keys(scripts);
 
@@ -23,25 +24,27 @@ export class LanguageGuesser {
     this.buildData();
   }
 
-  /**
-   * Extracts trigrams from the given string.
-   * @param srcValue Input text.
-   * @returns Array of trigrams.
-   */
   static getTrigrams(srcValue: string): string[] {
     if (!srcValue) return [];
-    // Remove diacritical marks using the Diacritics class
-    const normalized = ` ${Diacritics.remove(srcValue)
-      .replace(/[\u0021-\u0040]+/g, " ")
-      .replace(/\s+/g, " ")
-      .trim()
-      .toLowerCase()} `;
-    if (normalized.length < 3) return [];
-    const trigrams: string[] = [];
-    for (let i = 0, len = normalized.length - 2; i < len; i++) {
-      trigrams.push(normalized.substring(i, i + 3));
-    }
-    return trigrams;
+
+    // Optionally, perform additional normalization if desired.
+    // For example, here we remove diacritics prior to tokenization.
+    const normalized = Diacritics.remove(srcValue);
+
+    // Create a new Tokenizer instance with options that best match your needs.
+    // (Adjust options such as minLength if you expect very short tokens.)
+    const tokenizer = new Tokenizer({
+      lowercase: true,
+      removeDiacritics: false, // Already handled above
+      removeStopWords: false,
+      minLength: 1,           // Allow single-character tokens if needed
+    });
+
+    // Use the tokenizer's getTrigrams method.
+    // Here we request n-grams of size 3 and want them as joined strings.
+    const ngrams = tokenizer.getTrigrams(normalized, {}, 3, true);
+    // Since the Tokenizer returns (string[] | string)[], we assert that all n-grams are strings.
+    return ngrams as string[];
   }
 
   /**
