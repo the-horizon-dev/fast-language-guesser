@@ -1,12 +1,11 @@
 /**
- * Expressões regulares utilizadas para identificar scripts de escrita.
- * Utiliza Unicode property escapes para maior clareza e para evitar erros de ranges combinados.
+ * Regular expressions to identify writing scripts using Unicode property escapes.
  */
 export const scripts: Record<string, RegExp> = {
   // Chinese, Japanese Kanji, and other Han characters.
   cmn: /\p{Script=Han}/gu,
 
-  // Latin script (inclui letras latinas básicas e extendidas).
+  // Latin script (includes basic and extended Latin letters).
   Latin: /\p{Script=Latin}/gu,
 
   // Cyrillic script.
@@ -69,11 +68,8 @@ export const scripts: Record<string, RegExp> = {
   // Armenian script.
   hye: /\p{Script=Armenian}/gu,
 
-  // Santali script.
-  // Unicode names it as "Ol Chiki". If your engine supports it, you can use:
+  // Santali script (Ol Chiki).
   sat: /\p{Script=Ol_Chiki}/gu,
-  // Otherwise, you may revert to the numeric range:
-  // sat: /[\u1C50-\u1C7F]/gu,
 
   // Tibetan script.
   bod: /\p{Script=Tibetan}/gu,

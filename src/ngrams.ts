@@ -1,40 +1,39 @@
 import ngramData from "./data/ngrams.json";
 
 // A type that represents a single language’s n‑gram value,
-// which may either be a string (pipe-separated) or a mapping.
-type NgramValue = string | Record<string, number>;
+// which may either be a pipe‑separated string or an array of tokens.
+type NgramValue = string | string[];
 
 /**
- * Parses a pipe-separated n‑gram string into a mapping.
- * Each token is trimmed and then assigned an index (starting at 0).
+ * Parses a pipe‑separated n‑gram string into an array of tokens.
+ * Each token is trimmed.
  * @param value A pipe‑separated string of n‑grams.
- * @returns A mapping from each n‑gram to its index.
+ * @returns An array of n‑gram tokens.
  */
-function parseNgramValue(value: NgramValue): Record<string, number> {
+export function parseNgramValue(value: NgramValue): string[] {
   if (typeof value === "string") {
-    const parts = value
+    return value
       .split("|")
-      .map(part => part.trim())
+      .map((part) => part.trim())
       .filter(Boolean);
-    const mapping: Record<string, number> = {};
-    parts.forEach((ngram, index) => {
-      mapping[ngram] = index;
-    });
-    return mapping;
   }
   return value;
 }
 
 /**
  * Raw n‑gram data.
- * Here you can use the compact string format for each language.
+ * The compact string format (or an already prepared array) is used for each language.
  */
-export const rawNgramsData: Record<string, Record<string, NgramValue>> = ngramData;
+export const rawNgramsData: Record<
+  string,
+  Record<string, NgramValue>
+> = ngramData;
 
 /**
- * Process raw n‑gram data and build the n‑grams mapping.
+ * Processes raw n‑gram data and builds the n‑grams mapping.
+ * (Each language’s n‑gram model is an array of tokens.)
  */
-export const ngramsData: Record<string, Record<string, Record<string, number>>> = {};
+export const ngramsData: Record<string, Record<string, string[]>> = {};
 for (const script in rawNgramsData) {
   ngramsData[script] = {};
   for (const lang in rawNgramsData[script]) {
