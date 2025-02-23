@@ -1,10 +1,10 @@
 {
   "name": "@the-horizon-dev/fast-language-guesser",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "High-performance library for language guessing based on n-grams",
-  "main": "dist/cjs/index.js",
-  "module": "dist/esm/index.js",
-  "types": "dist/types/index.d.ts",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/esm/index.d.ts",
   "files": [
     "dist",
     "LICENSE",
