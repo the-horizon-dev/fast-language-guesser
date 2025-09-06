@@ -1,1 +1,1 @@
-export { LanguageGuesser } from "./language";
+export { LanguageGuesser } from "./language.js";

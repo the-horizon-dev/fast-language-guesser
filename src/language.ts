@@ -1,8 +1,8 @@
 import languageDataRaw from "./data/languages.json";
-import { ngramsData } from "./ngrams";
-import { IDetectionSettings } from "./interfaces/IDetectionSettings";
-import { ILanguageData } from "./interfaces/ILanguageData";
-import { scripts } from "./regex";
+import { ngramsData } from "./ngrams.js";
+import { IDetectionSettings } from "./interfaces/IDetectionSettings.js";
+import { ILanguageData } from "./interfaces/ILanguageData.js";
+import { scripts } from "./regex.js";
 import { Tokenizer } from "@the-horizon-dev/fast-tokenizer";
 
 const scriptKeys = Object.keys(scripts);
@@ -139,12 +139,11 @@ export class LanguageGuesser {
    * @returns True if the majority of characters are Latin.
    */
   static isLatin(inputText: string): boolean {
-    const half = inputText.length / 2;
-    const total = [...inputText].filter((char) => {
-      const code = char.charCodeAt(0);
-      return code >= 32 && code <= 126;
-    }).length;
-    return total > half;
+    if (!inputText) return false;
+    const latinMatches = inputText.match(scripts.Latin) || [];
+    const letterMatches = inputText.match(/\p{Letter}/gu) || [];
+    if (letterMatches.length === 0) return false;
+    return latinMatches.length > letterMatches.length / 2;
   }
 
   /**
@@ -240,6 +239,8 @@ export class LanguageGuesser {
     if (!inputText || inputText.length < minLength) return und();
     // Limit analysis to the first 2048 characters for performance.
     const text = inputText.substring(0, 2048);
+    // Ensure model indexes are initialized for static usage.
+    LanguageGuesser.buildModelIndexes();
     const [scriptId, scriptOccurrence] = LanguageGuesser.getTopScript(text);
     if (!(scriptId in ngramsData) && scriptOccurrence > 0.5) {
       if (settings.allowList) {
@@ -265,16 +266,17 @@ export class LanguageGuesser {
         return [[scriptId, 1]];
       const minDistance = distances[0][1];
       const maxDistance = text.length * MISSING_TRIGRAM_PENALTY - minDistance;
+      const denom = Math.max(1, maxDistance);
       const scored = distances.map(([lang, d]) => [
         lang,
-        1 - ((d - minDistance) / maxDistance || 0),
+        1 - ((d - minDistance) / denom || 0),
       ]) as [string, number][];
       if (scored.length === 0 || scored[0][1] < 0.5) {
         return und();
       }
       return scored;
     }
-    return [[scriptId, 1]];
+    return und();
   }
 
   /**
