@@ -30,7 +30,7 @@ describe("LanguageGuesser.detectAll edge cases", () => {
     const settings = { allowList: ["test"] };
     const result = LanguageGuesser.detectAll(
       "Some dummy text that is long enough",
-      settings
+      settings,
     );
     expect(result).toEqual([["test", 1]]);
   });
@@ -44,7 +44,7 @@ describe("LanguageGuesser.detectAll edge cases", () => {
     const settings = { allowList: ["jpn"] };
     const result = LanguageGuesser.detectAll(
       "Dummy text that is long enough",
-      settings
+      settings,
     );
     expect(result).toEqual([["jpn", 1]]);
     // Restore the "cmn" data
@@ -56,7 +56,7 @@ describe("LanguageGuesser.detectAll edge cases", () => {
     const settings = { allowList: ["eng"] };
     const result = LanguageGuesser.detectAll(
       "Dummy text that is long enough",
-      settings
+      settings,
     );
     // und() returns [["und", 1]]
     expect(result).toEqual([["und", 1]]);
@@ -68,7 +68,7 @@ describe("LanguageGuesser.detectAll edge cases", () => {
     // Override getDistances so that the first candidate is "und"
     LanguageGuesser.getDistances = (): [string, number][] => [["und", 100]];
     const result = LanguageGuesser.detectAll(
-      "This is some sample English text that is long enough"
+      "This is some sample English text that is long enough",
     );
     // Expect the branch to return [[scriptId, 1]] where scriptId is from getTopScript (likely "Latin")
     expect(result).toEqual([["Latin", 1]]);

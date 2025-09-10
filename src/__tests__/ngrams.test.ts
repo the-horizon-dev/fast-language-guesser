@@ -17,7 +17,7 @@ describe("Ngrams", () => {
     const script = Object.keys(rawNgramsData)[0];
     const lang = Object.keys(rawNgramsData[script])[0];
     expect(ngramsData[script][lang]).toEqual(
-      parseNgramValue(rawNgramsData[script][lang])
+      parseNgramValue(rawNgramsData[script][lang]),
     );
   });
 });

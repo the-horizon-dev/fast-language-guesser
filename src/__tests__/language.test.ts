@@ -9,7 +9,7 @@ describe("LanguageGuesser", () => {
 
   test("should return a best guess for English", () => {
     const result = guesser.guessBest(
-      "This is a sample sentence written in English."
+      "This is a sample sentence written in English.",
     );
     expect(result.language.toLowerCase()).toContain("english");
   });
@@ -17,7 +17,7 @@ describe("LanguageGuesser", () => {
   test("should return a guess for Spanish", () => {
     const result = guesser.guessBest(
       "Esta es una oración de ejemplo en español.",
-      ["es", "eng"]
+      ["es", "eng"],
     );
     expect(result.language.toLowerCase()).toContain("spanish");
   });
@@ -32,10 +32,10 @@ describe("LanguageGuesser", () => {
       "Este é um exemplo de frase em Português com um little bit of English embedded.";
     const results = guesser.guessMixed(mixedText, ["por", "eng"]);
     const hasPortuguese = results.some((r) =>
-      r.language.toLowerCase().includes("portuguese")
+      r.language.toLowerCase().includes("portuguese"),
     );
     const hasEnglish = results.some((r) =>
-      r.language.toLowerCase().includes("english")
+      r.language.toLowerCase().includes("english"),
     );
     expect(hasPortuguese).toBeTruthy();
     expect(hasEnglish).toBeTruthy();
@@ -105,7 +105,7 @@ describe("LanguageGuesser static methods", () => {
     let filtered = LanguageGuesser.filterLanguages(
       dummyLanguages,
       ["eng", "spa"],
-      []
+      [],
     );
     expect(Object.keys(filtered).sort()).toEqual(["eng", "spa"]);
 
@@ -115,7 +115,7 @@ describe("LanguageGuesser static methods", () => {
     filtered = LanguageGuesser.filterLanguages(
       dummyLanguages,
       ["eng", "spa"],
-      ["spa"]
+      ["spa"],
     );
     expect(Object.keys(filtered)).toEqual(["eng"]);
   });
@@ -135,7 +135,7 @@ describe("LanguageGuesser static methods", () => {
     const distances = LanguageGuesser.getDistances(
       trigrams,
       dummyLanguages,
-      {}
+      {},
     );
     expect(distances.length).toBe(2);
     expect(distances[0][1]).toBeLessThanOrEqual(distances[1][1]);
@@ -164,7 +164,7 @@ describe("LanguageGuesser instance methods", () => {
     const result = guesser.guess(
       "This is a test and is basically my life.",
       ["eng", "por"],
-      1
+      1,
     );
     expect(result[0].alpha3).toBe("eng");
   });

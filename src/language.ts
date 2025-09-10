@@ -46,7 +46,7 @@ export class LanguageGuesser {
             acc[trigram] = i;
             return acc;
           },
-          {} as Record<string, number>
+          {} as Record<string, number>,
         );
       }
     }
@@ -60,7 +60,7 @@ export class LanguageGuesser {
   private transformCodeList(list: string[]): string[] {
     return list
       .map((code) =>
-        code.length === 3 ? code : this.languagesAlpha2[code]?.alpha3 || ""
+        code.length === 3 ? code : this.languagesAlpha2[code]?.alpha3 || "",
       )
       .filter(Boolean);
   }
@@ -84,10 +84,13 @@ export class LanguageGuesser {
    */
   static asTuples(inputText: string): [string, number][] {
     const trigrams = LanguageGuesser.getTrigrams(inputText);
-    const frequencyMap = trigrams.reduce((acc, trigram) => {
-      acc[trigram] = (acc[trigram] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
+    const frequencyMap = trigrams.reduce(
+      (acc, trigram) => {
+        acc[trigram] = (acc[trigram] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
     const tuples = Object.entries(frequencyMap);
     tuples.sort((a, b) => a[1] - b[1]);
     return tuples;
@@ -104,13 +107,16 @@ export class LanguageGuesser {
   static getDistance(
     trigrams: [string, number][],
     model: string[],
-    modelIndex?: Record<string, number>
+    modelIndex?: Record<string, number>,
   ): number {
     if (!modelIndex) {
-      modelIndex = model.reduce((acc, trigram, i) => {
-        acc[trigram] = i;
-        return acc;
-      }, {} as Record<string, number>);
+      modelIndex = model.reduce(
+        (acc, trigram, i) => {
+          acc[trigram] = i;
+          return acc;
+        },
+        {} as Record<string, number>,
+      );
     }
     return trigrams.reduce((distance, [trigram, freq]) => {
       const rank = modelIndex[trigram];
@@ -177,7 +183,7 @@ export class LanguageGuesser {
   static filterLanguages(
     languages: Record<string, string[]>,
     allowList: string[],
-    denyList: string[]
+    denyList: string[],
   ): Record<string, string[]> {
     if (allowList.length === 0 && denyList.length === 0) return languages;
     const filtered: Record<string, string[]> = {};
@@ -204,13 +210,13 @@ export class LanguageGuesser {
     trigrams: [string, number][],
     srcLanguages: Record<string, string[]>,
     options: IDetectionSettings = {},
-    modelIndexesForScript?: Record<string, Record<string, number>>
+    modelIndexesForScript?: Record<string, Record<string, number>>,
   ): [string, number][] {
     const { allowList = [], denyList = [] } = options;
     const filteredLanguages = LanguageGuesser.filterLanguages(
       srcLanguages,
       allowList,
-      denyList
+      denyList,
     );
     const distances: [string, number][] = [];
     Object.keys(filteredLanguages).forEach((lang) => {
@@ -233,7 +239,7 @@ export class LanguageGuesser {
    */
   static detectAll(
     inputText: string,
-    settings: IDetectionSettings = {}
+    settings: IDetectionSettings = {},
   ): [string, number][] {
     const minLength = settings.minLength ?? 10;
     if (!inputText || inputText.length < minLength) return und();
@@ -260,7 +266,7 @@ export class LanguageGuesser {
         tuples,
         ngramsData[scriptId],
         settings,
-        LanguageGuesser.modelIndexes[scriptId]
+        LanguageGuesser.modelIndexes[scriptId],
       );
       if (distances.length > 0 && distances[0][0] === "und")
         return [[scriptId, 1]];
@@ -288,7 +294,7 @@ export class LanguageGuesser {
         const langData: ILanguageData = { alpha2, alpha3, name };
         this.languagesAlpha3[alpha3] = langData;
         this.languagesAlpha2[alpha2] = langData;
-      }
+      },
     );
   }
 
@@ -304,7 +310,7 @@ export class LanguageGuesser {
     utterance: string,
     allowList: string[] = [],
     limit = 3,
-    denyList: string[] = []
+    denyList: string[] = [],
   ): Array<{
     alpha3: string;
     alpha2: string;
@@ -332,13 +338,13 @@ export class LanguageGuesser {
       })
       .filter(
         (
-          item
+          item,
         ): item is {
           alpha3: string;
           alpha2: string;
           language: string;
           score: number;
-        } => Boolean(item)
+        } => Boolean(item),
       );
     if (results.length === 0) {
       return [
@@ -356,7 +362,7 @@ export class LanguageGuesser {
    */
   public guessBest(
     utterance: string,
-    allowList: string[] = []
+    allowList: string[] = [],
   ): { alpha3: string; alpha2: string; language: string; score: number } {
     const result = this.guess(utterance, allowList, 1)[0];
     return (
@@ -382,7 +388,7 @@ export class LanguageGuesser {
     utterance: string,
     allowList: string[] = [],
     limit = 3,
-    segmentationOptions?: { windowSize?: number; stepSize?: number }
+    segmentationOptions?: { windowSize?: number; stepSize?: number },
   ): Array<{
     alpha3: string;
     alpha2: string;
